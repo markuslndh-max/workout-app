@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Workout Tracker</title>
+  
+  <!-- App Icon for iOS Home Screen -->
+  <link rel="apple-touch-icon" href="https://fav.farm/🏋️‍♂️">
+  
+  <style>
+    :root {
+      --bg: #121212;
+      --card-bg: #1e1e1e;
+      --primary: #2563eb;
+      --primary-glow: rgba(37, 99, 235, 0.4);
+      --text: #ffffff;
+      --text-sub: #a1a1aa;
+      --border: #3f3f46;
+      --accent: #10b981;
+      --fire: #f97316;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 16px;
+      display: flex;
+      justify-content: center;
+    }
+    .app { width: 100%; max-width: 450px; }
+    h1, h2, h3 { margin: 0 0 12px 0; }
+    .user-select { display: flex; gap: 10px; margin-bottom: 16px; }
+    .user-btn {
+      flex: 1; padding: 12px; border: 2px solid var(--border);
+      background: var(--card-bg); color: var(--text); font-weight: bold;
+      border-radius: 12px; cursor: pointer; font-size: 1rem;
+      transition: all 0.2s ease;
+    }
+    .user-btn.active { border-color: var(--primary); background: #1e293b; box-shadow: 0 0 15px var(--primary-glow); }
+    
+    .card {
+      background: var(--card-bg); padding: 16px; border-radius: 16px;
+      margin-bottom: 20px; border: 1px solid var(--border);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+    }
+    
+    .game-dashboard {
+      background: linear-gradient(135deg, #1e1e1e 0%, #0f172a 100%);
+      border: 1px solid #3b82f655;
+    }
+    
+    .streak-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: rgba(249, 115, 22, 0.15);
+      border: 1px solid var(--fire);
+      color: #ffedd5;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-weight: bold;
+      font-size: 0.85rem;
+      box-shadow: 0 0 10px rgba(249, 115, 22, 0.3);
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .stat-box {
+      background: rgba(255, 255, 255, 0.03);
+      padding: 10px;
+      border-radius: 10px;
+      text-align: center;
+      border: 1px solid var(--border);
+    }
+    .stat-value { font-size: 1.2rem; font-weight: bold; color: var(--accent); }
+    .stat-label { font-size: 0.75rem; color: var(--text-sub); margin-top: 2px; }
+    
+    .progress-container { margin-top: 12px; }
+    .progress-bar-bg {
+      background: #27272a; height: 10px; border-radius: 5px;
+      overflow: hidden; margin-top: 6px;
+    }
+    .progress-bar-fill {
+      background: linear-gradient(90deg, #2563eb, #10b981);
+      height: 100%; width: 0%; transition: width 0.5s ease;
+    }
+    .progress-text {
+      display: flex; justify-content: space-between;
+      font-size: 0.8rem; color: var(--text-sub);
+    }
+
+    .next-up-box {
+      background: rgba(37, 99, 235, 0.15);
+      border: 1px solid #3b82f6;
+      border-radius: 10px;
+      padding: 10px 12px;
+      margin-bottom: 12px;
+      font-size: 0.85rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    label { display: block; font-size: 0.85rem; color: var(--text-sub); margin: 10px 0 4px; }
+    select, input, button {
+      width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border);
+      background: #27272a; color: var(--text); box-sizing: border-box; font-size: 1rem;
+    }
+    .row { display: flex; gap: 10px; }
+    .row > div { flex: 1; }
+    
+    .btn-template {
+      background: #1e293b; color: #60a5fa; border: 1px solid #3b82f6; font-weight: bold;
+      margin-top: 6px; margin-bottom: 12px; cursor: pointer; padding: 10px; border-radius: 8px;
+    }
+    .btn-secondary {
+      background: #3f3f46; color: white; font-weight: bold;
+      border: none; margin-top: 10px; cursor: pointer; padding: 10px;
+    }
+    .btn-submit {
+      background: var(--primary); color: white; font-weight: bold;
+      border: none; margin-top: 16px; cursor: pointer; padding: 12px;
+    }
+    
+    .exercise-list {
+      margin-top: 14px;
+      background: rgba(0,0,0,0.2);
+      border-radius: 8px;
+      padding: 8px 12px;
+    }
+    .exercise-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid #27272a;
+      font-size: 0.9rem;
+    }
+    .exercise-item:last-child { border-bottom: none; }
+    .remove-btn {
+      color: #ef4444; cursor: pointer; font-weight: bold; margin-left: 10px; padding: 2px 6px;
+    }
+
+    .log-item { border-bottom: 1px solid var(--border); padding: 12px 0; }
+    .log-item:last-child { border-bottom: none; }
+    .log-meta { font-size: 0.8rem; color: var(--text-sub); }
+    .calc-result {
+      margin-top: 12px; padding: 12px; background: #064e3b;
+      border-radius: 8px; text-align: center; font-weight: bold; color: #a7f3d0;
+    }
+  </style>
+</head>
+<body>
+
+<div class="app">
+  <h2>🏋️‍♂️ Workout Tracker</h2>
+  
+  <!-- User Switcher -->
+  <div class="user-select">
+    <button type="button" class="user-btn active" id="btn-markus">Markus</button>
+    <button type="button" class="user-btn" id="btn-maricel">Maricel</button>
+  </div>
+
+  <!-- Game / Player Dashboard -->
+  <div class="card game-dashboard">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <h3 id="player-title" style="margin: 0; color: #60a5fa;">🎮 Player Stats</h3>
+      <div style="display: flex; gap: 6px; align-items: center;">
+        <span class="streak-badge" id="streak-container">🔥 <span id="streak-count">0</span></span>
+        <span id="player-level-badge" style="font-size: 0.8rem; background: #1e3a8a; color: #bfdbfe; padding: 4px 8px; border-radius: 12px; font-weight: bold;">Loading...</span>
+      </div>
+    </div>
+
+    <!-- Weekly Quest (Target: 7 days) -->
+    <div class="progress-container">
+      <div class="progress-text">
+        <span id="weekly-quest-text">Weekly Days Active: 0 / 7</span>
+        <span id="weekly-quest-pct">0%</span>
+      </div>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="weekly-bar"></div>
+      </div>
+    </div>
+
+    <!-- YTD Stats -->
+    <div class="stats-grid">
+      <div class="stat-box">
+        <div class="stat-value" id="stat-ytd-days">0</div>
+        <div class="stat-label">Active Days (YTD)</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-value" id="stat-ytd-pct">0%</div>
+        <div class="stat-label">Consistency (YTD)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Session Builder Form -->
+  <div class="card">
+    <h3 id="form-title">New Workout for Markus</h3>
+    
+    <!-- Next Up Recommendation Box -->
+    <div class="next-up-box" id="next-up-box" onclick="applyRecommendedWorkout()">
+      <span>🔄 <strong>Next Up in Rotation:</strong> <span id="next-up-text">Push</span></span>
+      <span style="font-size: 0.75rem; color: #93c5fd;">[Tap to select]</span>
+    </div>
+
+    <label>Workout Type</label>
+    <select id="workout-type">
+      <option value="Push">Push (Chest / Shoulders / Triceps)</option>
+      <option value="Legs">Legs (Quads / Glutes / Abs)</option>
+      <option value="Pull">Pull (Back / Biceps)</option>
+      <option value="HIIT">HIIT / YouTube Session</option>
+      <option value="Cardio">Cardio (Run / Bike / Cardio)</option>
+    </select>
+
+    <button type="button" class="btn-template" id="load-template-btn">⚡ Load Workout Template</button>
+
+    <!-- Strength Inputs -->
+    <div id="strength-fields">
+      <label>Select Exercise</label>
+      <select id="exercise-select"></select>
+
+      <div id="custom-exercise-div" style="display: none; margin-top: 8px;">
+        <input type="text" id="custom-exercise" placeholder="Custom exercise name...">
+      </div>
+
+      <div class="row">
+        <div>
+          <label>Weight (kg)</label>
+          <input type="number" id="weight" placeholder="110">
+        </div>
+        <div>
+          <label>Reps</label>
+          <input type="number" id="reps" placeholder="3">
+        </div>
+        <div>
+          <label>Sets</label>
+          <input type="number" id="sets" placeholder="4">
+        </div>
+      </div>
+    </div>
+
+    <!-- Cardio / HIIT Inputs -->
+    <div id="cardio-fields" style="display: none;">
+      <label>Activity / Session Name</label>
+      <select id="cardio-select"></select>
+      
+      <div id="custom-cardio-div" style="display: none; margin-top: 8px;">
+        <input type="text" id="custom-cardio" placeholder="Custom activity name...">
+      </div>
+
+      <div class="row">
+        <div>
+          <label>Duration (min)</label>
+          <input type="number" id="duration" placeholder="60">
+        </div>
+        <div>
+          <label>Distance (km - optional)</label>
+          <input type="number" step="0.1" id="distance" placeholder="5.0">
+        </div>
+      </div>
+    </div>
+
+    <button type="button" class="btn-secondary" id="add-exercise-btn">+ Add Single Exercise</button>
+
+    <!-- Added Exercises in current Session -->
+    <div class="exercise-list" id="session-exercise-list" style="display: none;">
+      <strong style="font-size: 0.85rem; color: var(--text-sub);">Exercises in this Session:</strong>
+      <div id="session-items"></div>
+    </div>
+
+    <button type="button" class="btn-submit" id="save-btn">Finish & Save Workout ☁️</button>
+  </div>
+
+  <!-- 1RM Calculator -->
+  <div class="card">
+    <h3>🧮 1RM Calculator (Max Strength)</h3>
+    <div class="row">
+      <div>
+        <label>Weight (kg)</label>
+        <input type="number" id="calc-weight" placeholder="110">
+      </div>
+      <div>
+        <label>Reps</label>
+        <input type="number" id="calc-reps" placeholder="2">
+      </div>
+    </div>
+    <div id="calc-output" class="calc-result" style="display:none;"></div>
+  </div>
+
+  <!-- History -->
+  <div class="card">
+    <h3>📋 Workout History</h3>
+    <div id="history-list">Loading from Google Sheets...</div>
+  </div>
+</div>
+
+<script>
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwp6RbvejD_oLWPFkESqMwWLjAHXAoqVg_KIlemkBE8dHBrnGInquhh5JGTnLEN27-jzQ/exec";
+
+  let currentUser = 'Markus';
+  let allLogs = [];
+  let currentSession = [];
+  let recommendedType = 'Push';
+
+  const rotationOrder = ['Push', 'Legs', 'Pull', 'HIIT'];
+
+  const exercises = {
+    Push: ["Bench Press", "Overhead Press", "Lateral Raises", "Push-ups", "Pike Push-ups", "Dips", "Overhead Dumbbell Extensions", "Incline Dumbbell Press", "Cable Flyes", "Custom..."],
+    Legs: ["Lunges", "Squats", "One Legged Glute Bridges", "7-minute Ab Killer", "Barbell Squats", "Leg Press", "Romanian Deadlifts (RDL)", "Standing Calf Raises", "Custom..."],
+    Pull: ["Pull-ups", "Chins", "Bodyweight Rows", "Barbell Curl", "Dumbbell Curl", "Hammer Curl", "Lat Pulldown", "Custom..."],
+    HIIT: ["YouTube HIIT Workout", "Circuit Training", "Kettlebell Session", "Custom..."],
+    Cardio: ["Treadmill Run / Walk", "Exercise Bike", "Stairmaster", "Outdoor Run", "Custom..."]
+  };
+
+  const templates = {
+    Push: ["Bench Press", "Overhead Press", "Lateral Raises", "Push-ups", "Pike Push-ups", "Dips", "Overhead Dumbbell Extensions"],
+    Legs: ["Lunges", "Squats", "One Legged Glute Bridges", "7-minute Ab Killer"],
+    Pull: ["Pull-ups", "Chins", "Bodyweight Rows", "Barbell Curl", "Dumbbell Curl", "Hammer Curl"],
+    HIIT: ["YouTube HIIT Workout"],
+    Cardio: ["Treadmill Run / Walk"]
+  };
+
+  function selectUser(user) {
+    currentUser = user;
+    document.getElementById('btn-markus').classList.toggle('active', user === 'Markus');
+    document.getElementById('btn-maricel').classList.toggle('active', user === 'Maricel');
+    document.getElementById('form-title').innerText = `New Workout for ${user}`;
+    updateGameStats();
+  }
+
+  function updateExercises() {
+    const type = document.getElementById('workout-type').value;
+    const isCardio = (type === 'Cardio' || type === 'HIIT');
+    
+    document.getElementById('strength-fields').style.display = isCardio ? 'none' : 'block';
+    document.getElementById('cardio-fields').style.display = isCardio ? 'block' : 'none';
+
+    document.getElementById('load-template-btn').style.display = (type === 'HIIT') ? 'none' : 'block';
+
+    const select = isCardio ? document.getElementById('cardio-select') : document.getElementById('exercise-select');
+    select.innerHTML = '';
+    
+    if (exercises[type]) {
+      exercises[type].forEach(ex => {
+        let opt = document.createElement('option');
+        opt.value = ex;
+        opt.innerText = ex;
+        select.appendChild(opt);
+      });
+    }
+    checkCustomExercise();
+  }
+
+  function checkCustomExercise() {
+    const type = document.getElementById('workout-type').value;
+    const isCardio = (type === 'Cardio' || type === 'HIIT');
+    
+    if (isCardio) {
+      const val = document.getElementById('cardio-select').value;
+      document.getElementById('custom-cardio-div').style.display = (val === 'Custom...') ? 'block' : 'none';
+    } else {
+      const val = document.getElementById('exercise-select').value;
+      document.getElementById('custom-exercise-div').style.display = (val === 'Custom...') ? 'block' : 'none';
+    }
+  }
+
+  function applyRecommendedWorkout() {
+    document.getElementById('workout-type').value = recommendedType;
+    updateExercises();
+  }
+
+  function updateRotationRecommendation() {
+    const userLogs = allLogs.filter(l => l.user === currentUser);
+    if (userLogs.length === 0) {
+      recommendedType = 'Push';
+    } else {
+      const lastWorkout = userLogs[0].type;
+      const lastIndex = rotationOrder.indexOf(lastWorkout);
+      if (lastIndex !== -1) {
+        recommendedType = rotationOrder[(lastIndex + 1) % rotationOrder.length];
+      } else {
+        recommendedType = 'Push';
+      }
+    }
+    document.getElementById('next-up-text').innerText = recommendedType;
+  }
+
+  // Calculate Snapchat-style Streak
+  function calculateStreak(userLogs) {
+    if (userLogs.length === 0) return 0;
+
+    // Get unique dates sorted descending
+    const uniqueDates = Array.from(new Set(userLogs.map(l => l.date)))
+      .map(d => new Date(d))
+      .sort((a, b) => b - a);
+
+    const today = new Date();
+    today.setHours(0,0,0,0);
+
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+
+    const mostRecent = new Date(uniqueDates[0]);
+    mostRecent.setHours(0,0,0,0);
+
+    // If most recent workout is older than yesterday, streak is broken
+    if (mostRecent < yesterday) return 0;
+
+    let streak = 0;
+    let checkDate = mostRecent;
+
+    for (let i = 0; i < uniqueDates.length; i++) {
+      const currentDate = new Date(uniqueDates[i]);
+      currentDate.setHours(0,0,0,0);
+
+      const diffDays = Math.round((checkDate - currentDate) / (1000 * 60 * 60 * 24));
+
+      if (diffDays === 0) {
+        if (i === 0) streak = 1;
+      } else if (diffDays === 1) {
+        streak++;
+        checkDate = currentDate;
+      } else {
+        break; // Streak broken
+      }
+    }
+
+    return streak;
+  }
+
+  function loadTemplate() {
+    const type = document.getElementById('workout-type').value;
+    if (templates[type]) {
+      templates[type].forEach(exName => {
+        currentSession.push(`${exName}`);
+      });
+      renderSessionList();
+    }
+  }
+
+  function addExerciseToSession() {
+    const type = document.getElementById('workout-type').value;
+    const isCardio = (type === 'Cardio' || type === 'HIIT');
+    
+    let itemText = '';
+
+    if (!isCardio) {
+      let ex = document.getElementById('exercise-select').value;
+      if (ex === 'Custom...') ex = document.getElementById('custom-exercise').value || 'Custom Exercise';
+      const w = document.getElementById('weight').value;
+      const r = document.getElementById('reps').value;
+      const s = document.getElementById('sets').value;
+      
+      itemText = (w || r || s) ? `${ex}: ${s || 0} sets x ${r || 0} reps @ ${w || 0}kg` : `${ex}`;
+    } else {
+      let ex = document.getElementById('cardio-select').value;
+      if (ex === 'Custom...') ex = document.getElementById('custom-cardio').value || 'HIIT / Cardio';
+      const dur = document.getElementById('duration').value || 60;
+      const dist = document.getElementById('distance').value;
+      
+      itemText = `${ex}: ${dur} min ${dist ? '(' + dist + ' km)' : ''}`;
+    }
+
+    currentSession.push(itemText);
+
+    document.getElementById('weight').value = '';
+    document.getElementById('reps').value = '';
+    document.getElementById('sets').value = '';
+    document.getElementById('duration').value = '';
+    document.getElementById('distance').value = '';
+    document.getElementById('custom-exercise').value = '';
+    document.getElementById('custom-cardio').value = '';
+
+    renderSessionList();
+  }
+
+  function renderSessionList() {
+    const listDiv = document.getElementById('session-exercise-list');
+    const itemsDiv = document.getElementById('session-items');
+    
+    if (currentSession.length === 0) {
+      listDiv.style.display = 'none';
+      return;
+    }
+
+    listDiv.style.display = 'block';
+    itemsDiv.innerHTML = '';
+
+    currentSession.forEach((exText, idx) => {
+      let div = document.createElement('div');
+      div.className = 'exercise-item';
+      div.innerHTML = `
+        <span>• ${exText}</span>
+        <span class="remove-btn" onclick="removeExercise(${idx})">✕</span>
+      `;
+      itemsDiv.appendChild(div);
+    });
+  }
+
+  function removeExercise(idx) {
+    currentSession.splice(idx, 1);
+    renderSessionList();
+  }
+
+  function calculate1RM() {
+    const w = parseFloat(document.getElementById('calc-weight').value);
+    const r = parseFloat(document.getElementById('calc-reps').value);
+    const out = document.getElementById('calc-output');
+
+    if (w > 0 && r > 0) {
+      const oneRM = Math.round(w * (1 + r / 30));
+      out.style.display = 'block';
+      out.innerText = `Estimated 1RM: ~${oneRM} kg`;
+    } else {
+      out.style.display = 'none';
+    }
+  }
+
+  function updateGameStats() {
+    const userLogs = allLogs.filter(l => l.user === currentUser);
+    
+    // Calculate Streak
+    const streak = calculateStreak(userLogs);
+    document.getElementById('streak-count').innerText = streak;
+
+    const now = new Date();
+    const dayOfWeek = now.getDay() === 0 ? 6 : now.getDay() - 1;
+    const monday = new Date(now);
+    monday.setDate(now.getDate() - dayOfWeek);
+    monday.setHours(0,0,0,0);
+
+    const userWeeklyLogs = userLogs.filter(l => new Date(l.date) >= monday);
+    const activeDaysThisWeek = new Set(userWeeklyLogs.map(l => l.date)).size;
+
+    const weeklyTarget = 7;
+    const weeklyPct = Math.min(Math.round((activeDaysThisWeek / weeklyTarget) * 100), 100);
+    
+    document.getElementById('weekly-quest-text').innerText = `Weekly Days Active: ${activeDaysThisWeek} / ${weeklyTarget}`;
+    document.getElementById('weekly-quest-pct').innerText = `${weeklyPct}%`;
+    document.getElementById('weekly-bar').style.width = `${weeklyPct}%`;
+
+    const currentYear = new Date().getFullYear();
+    const startOfYear = new Date(currentYear, 0, 1);
+    const daysPassedInYear = Math.floor((now - startOfYear) / (1000 * 60 * 60 * 24)) + 1;
+
+    const ytdWorkouts = userLogs.filter(l => new Date(l.date).getFullYear() === currentYear);
+    const uniqueDays = new Set(ytdWorkouts.map(l => l.date)).size;
+    const yearPct = ((uniqueDays / daysPassedInYear) * 100).toFixed(1);
+
+    document.getElementById('stat-ytd-days').innerText = uniqueDays;
+    document.getElementById('stat-ytd-pct').innerText = `${yearPct}%`;
+
+    let title = "Rookie 🌱";
+    if (uniqueDays >= 5) title = "Consistent 🔥";
+    if (uniqueDays >= 15) title = "Warrior 🛡️";
+    if (uniqueDays >= 30) title = "Iron Will ⚡";
+    if (uniqueDays >= 60) title = "Unstoppable 🦾";
+
+    document.getElementById('player-level-badge').innerText = title;
+    document.getElementById('player-title').innerText = `${currentUser}'s Dashboard`;
+
+    updateRotationRecommendation();
+  }
+
+  async function saveWorkout() {
+    if (currentSession.length === 0) {
+      addExerciseToSession();
+    }
+
+    if (currentSession.length === 0) {
+      alert("Please add at least one exercise or duration before saving.");
+      return;
+    }
+
+    const btn = document.getElementById('save-btn');
+    btn.innerText = 'Saving...';
+    btn.disabled = true;
+
+    const type = document.getElementById('workout-type').value;
+    const detailsText = currentSession.join(' | ');
+
+    const payload = {
+      date: new Date().toLocaleDateString('sv-SE'),
+      user: currentUser,
+      type: type,
+      detailsText: detailsText
+    };
+
+    try {
+      if (SCRIPT_URL) {
+        await fetch(SCRIPT_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+      }
+      
+      currentSession = [];
+      renderSessionList();
+
+      setTimeout(() => {
+        fetchHistory();
+        btn.innerText = 'Finish & Save Workout ☁️';
+        btn.disabled = false;
+      }, 1000);
+
+    } catch (e) {
+      alert('Error saving to cloud.');
+      btn.innerText = 'Finish & Save Workout ☁️';
+      btn.disabled = false;
+    }
+  }
+
+  async function fetchHistory() {
+    const container = document.getElementById('history-list');
+
+    try {
+      const res = await fetch(SCRIPT_URL);
+      const logs = await res.json();
+      
+      allLogs = logs || [];
+      container.innerHTML = '';
+      
+      if (allLogs.length === 0) {
+        container.innerHTML = '<p style="color: var(--text-sub);">No workouts saved in sheet yet.</p>';
+        return;
+      }
+
+      updateGameStats();
+
+      allLogs.slice(0, 10).forEach(log => {
+        let div = document.createElement('div');
+        div.className = 'log-item';
+        
+        const formattedDetails = log.detailsText.split(' | ').map(ex => `• ${ex}`).join('<br>');
+
+        div.innerHTML = `
+          <strong>${log.user}</strong> · <span class="log-meta">${log.date} [${log.type}]</span>
+          <div style="margin-top: 4px; line-height: 1.4;">${formattedDetails}</div>
+        `;
+        container.appendChild(div);
+      });
+    } catch (e) {
+      container.innerHTML = '<p style="color: var(--text-sub);">Fetching history...</p>';
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", function() {
+    document.getElementById('btn-markus').addEventListener('click', function() { selectUser('Markus'); });
+    document.getElementById('btn-maricel').addEventListener('click', function() { selectUser('Maricel'); });
+
+    document.getElementById('workout-type').addEventListener('change', updateExercises);
+    document.getElementById('exercise-select').addEventListener('change', checkCustomExercise);
+    document.getElementById('cardio-select').addEventListener('change', checkCustomExercise);
+
+    document.getElementById('load-template-btn').addEventListener('click', loadTemplate);
+    document.getElementById('add-exercise-btn').addEventListener('click', addExerciseToSession);
+    document.getElementById('save-btn').addEventListener('click', saveWorkout);
+
+    document.getElementById('calc-weight').addEventListener('input', calculate1RM);
+    document.getElementById('calc-reps').addEventListener('input', calculate1RM);
+
+    updateExercises();
+    fetchHistory();
+  });
+</script>
+
+</body>
+</html>
